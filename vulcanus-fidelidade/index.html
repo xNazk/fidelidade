@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vulcanus Grill — Fidelidade</title>
+  <meta name="description" content="Programa de fidelidade Vulcanus Grill. A cada 10 pedidos, ganhe um combo grátis." />
+  <link rel="icon" href="/logo.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand: #C8410A;
+      --brand-light: #FAECE7;
+      --brand-mid: #D85A30;
+      --font-display: 'Syne', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+      --bg: #f5f4f0;
+      --surface: #ffffff;
+      --border: rgba(0,0,0,0.1);
+      --border-mid: rgba(0,0,0,0.18);
+      --text: #1a1a1a;
+      --text-muted: #6b6b6b;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #141414;
+        --surface: #1e1e1e;
+        --border: rgba(255,255,255,0.1);
+        --border-mid: rgba(255,255,255,0.18);
+        --text: #f0f0f0;
+        --text-muted: #888;
+        --brand-light: #3a1a08;
+      }
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    #app {
+      max-width: 420px;
+      margin: 0 auto;
+      min-height: 100vh;
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* NAV */
+    .nav-tabs {
+      display: flex;
+      border-bottom: 0.5px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--surface);
+      z-index: 10;
+    }
+    .nav-tab {
+      flex: 1;
+      padding: 16px;
+      background: var(--bg);
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .nav-tab.active {
+      background: var(--surface);
+      color: var(--brand);
+      border-bottom: 2px solid var(--brand);
+    }
+    .nav-tab i { margin-right: 6px; font-size: 15px; vertical-align: -2px; }
+
+    /* SCREENS */
+    .screen { display: none; flex: 1; }
+    .screen.active { display: block; }
+    .content { padding: 24px 20px; }
+
+    /* CARD */
+    .card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    /* LOGO */
+    .logo-area {
+      text-align: center;
+      padding: 28px 20px 0;
+    }
+    .logo-img {
+      width: 90px;
+      height: 90px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto 8px;
+    }
+    .logo-name {
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--brand);
+      letter-spacing: -0.02em;
+    }
+    .logo-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* SECTION TITLE */
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    /* STAMP */
+    .stamp-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin: 16px 0;
+    }
+    .stamp {
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: 2px dashed var(--border-mid);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      transition: all 0.3s;
+      background: transparent;
+    }
+    .stamp.filled {
+      border: 2px solid var(--brand);
+      background: var(--brand-light);
+    }
+    .stamp.filled::after { content: '🍔'; }
+    .stamp:not(.filled)::after {
+      content: '';
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--border);
+      display: block;
+    }
+    .stamp.prize { border-color: #E9A800; background: #FFF8E7; }
+    .stamp.prize.filled { border-color: #BA7517; background: #FAC775; }
+    .stamp.prize.filled::after { content: '🎁'; font-size: 18px; }
+
+    /* PROGRESS */
+    .progress-wrap {
+      background: var(--bg);
+      border-radius: 99px;
+      height: 6px;
+      margin: 10px 0 6px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: var(--brand);
+      border-radius: 99px;
+      transition: width 0.5s ease;
+    }
+    .progress-text { font-size: 12px; color: var(--text-muted); }
+
+    /* CLIENT AVATAR */
+    .client-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--brand-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--brand);
+      flex-shrink: 0;
+    }
+    .client-name {
+      font-family: var(--font-display);
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .client-since { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    /* BADGE */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .badge-brand { background: var(--brand-light); color: var(--brand); }
+    .badge-warning { background: #FAEEDA; color: #854F0B; }
+    .badge-success { background: #EAF3DE; color: #3B6D11; }
+
+    /* FORMS */
+    .form-group { margin-bottom: 14px; }
+    .form-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      display: block;
+    }
+    input[type="text"], input[type="tel"], input[type="password"] {
+      width: 100%;
+      padding: 11px 14px;
+      border: 0.5px solid var(--border-mid);
+      border-radius: var(--radius-md);
+      font-family: var(--font-body);
+      font-size: 15px;
+      background: var(--surface);
+      color: var(--text);
+      transition: border-color 0.2s;
+    }
+    input:focus {
+      outline: none;
+      border-color: var(--brand);
+      box-shadow: 0 0 0 3px rgba(200,65,10,0.12);
+    }
+
+    /* BUTTONS */
+    .btn {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.18s;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary { background: var(--brand); color: white; }
+    .btn-primary:hover { background: var(--brand-mid); }
+    .btn-secondary {
+      background: var(--bg);
+      color: var(--text);
+      border: 0.5px solid var(--border);
+      margin-top: 8px;
+    }
+    .btn-sm { width: auto; padding: 8px 14px; font-size: 13px; }
+
+    /* DIVIDER */
+    .divider { height: 0.5px; background: var(--border); margin: 16px 0; }
+
+    /* PRIZE BANNER */
+    .prize-banner {
+      background: #FAEEDA;
+      border: 0.5px solid #FAC775;
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .prize-banner-text { font-size: 13px; font-weight: 500; color: #633806; }
+    .prize-banner-sub { font-size: 11px; color: #854F0B; margin-top: 2px; }
+
+    /* CLIENT LIST */
+    .client-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 0.5px solid var(--border);
+      cursor: pointer;
+      transition: background 0.15s;
+      border-radius: var(--radius-md);
+    }
+    .client-row:last-child { border-bottom: none; }
+    .client-row:hover { background: var(--bg); padding: 12px 10px; margin: 0 -10px; }
+    .client-row-info { flex: 1; min-width: 0; }
+    .client-row-name { font-size: 14px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .client-row-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .client-row-stamps { font-size: 13px; color: var(--brand); font-weight: 500; flex-shrink: 0; }
+
+    /* ADMIN HEADER */
+    .admin-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .admin-title {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      flex: 1;
+    }
+
+    /* SEARCH */
+    .search-wrap { position: relative; margin-bottom: 14px; }
+    .search-wrap input { padding-left: 38px; }
+    .search-wrap i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 16px;
+      pointer-events: none;
+    }
+
+    /* STAT CARDS */
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .stat-card {
+      background: var(--bg);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+    }
+    .stat-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+    .stat-value { font-size: 24px; font-weight: 500; color: var(--text); }
+
+    /* EMPTY */
+    .empty-state {
+      text-align: center;
+      padding: 32px 16px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    .empty-state i { font-size: 28px; display: block; margin-bottom: 8px; }
+
+    /* TOAST */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #1a1a1a;
+      color: white;
+      padding: 10px 22px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-family: var(--font-body);
+      transition: transform 0.3s ease;
+      z-index: 9999;
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* MODAL */
+    #modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 1000;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 0;
+    }
+    #modal-overlay.open { display: flex; }
+    #modal-box {
+      background: var(--surface);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      padding: 28px 24px 36px;
+      width: 100%;
+      max-width: 420px;
+      border: 0.5px solid var(--border);
+      animation: slideUp 0.25s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .modal-title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: var(--text);
+    }
+    .modal-handle {
+      width: 36px;
+      height: 4px;
+      background: var(--border-mid);
+      border-radius: 99px;
+      margin: 0 auto 20px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('cliente')" id="tab-cliente">
+      <i class="ti ti-user" aria-hidden="true"></i>Meu Cartão
+    </button>
+    <button class="nav-tab" onclick="switchTab('admin')" id="tab-admin">
+      <i class="ti ti-lock" aria-hidden="true"></i>Atendente
+    </button>
+  </div>
+
+  <!-- TELA CLIENTE -->
+  <div id="screen-cliente" class="screen active">
+
+    <div id="client-lookup">
+      <div class="logo-area">
+        <img class="logo-img" src="/logo.png" alt="Vulcanus Grill" />
+        <div class="logo-name">Vulcanus Grill</div>
+        <div class="logo-sub">Programa de fidelidade</div>
+      </div>
+      <div class="content" style="padding-top:20px;">
+        <div class="card">
+          <p class="section-title">Consultar meu cartão</p>
+          <div class="form-group">
+            <label class="form-label" for="client-cpf">CPF</label>
+            <input type="text" id="client-cpf" placeholder="000.000.000-00" maxlength="14" oninput="maskCPF(this)" inputmode="numeric" />
+          </div>
+          <button class="btn btn-primary" onclick="lookupClient()">
+            <i class="ti ti-search" aria-hidden="true"></i> Ver meu cartão
+          </button>
+          <button class="btn btn-secondary" onclick="showRegister()">Ainda não tenho cadastro</button>
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);text-align:center;padding:0 10px;">
+          A cada 10 pedidos, você ganha um combo grátis 🎁
+        </p>
+      </div>
+    </div>
+
+    <div id="client-card" style="display:none;">
+      <div class="content">
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <div class="client-avatar" id="card-avatar">--</div>
+            <div style="flex:1;min-width:0;">
+              <div class="client-name" id="card-name">-</div>
+              <div class="client-since" id="card-since">-</div>
+            </div>
+            <span class="badge badge-brand" id="card-cycle">Ciclo 1</span>
+          </div>
+          <div class="divider"></div>
+          <p class="section-title" style="margin-bottom:4px;">Seus carimbos</p>
+          <div class="stamp-grid" id="stamp-grid"></div>
+          <div class="progress-wrap">
+            <div class="progress-bar" id="progress-bar" style="width:0%"></div>
+          </div>
+          <div class="progress-text" id="progress-text">0 de 10 pedidos</div>
+          <div id="prize-banner" class="prize-banner" style="display:none;">
+            <span style="font-size:26px;">🎁</span>
+            <div>
+              <div class="prize-banner-text">Parabéns! Combo grátis disponível!</div>
+              <div class="prize-banner-sub">Apresente este cartão no caixa para retirar.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="padding:14px 18px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <i class="ti ti-history" style="color:var(--text-muted);font-size:20px;" aria-hidden="true"></i>
+            <div style="flex:1;">
+              <div style="font-size:13px;font-weight:500;color:var(--text);">Total de pedidos</div>
+              <div style="font-size:12px;color:var(--text-muted);" id="card-total-sub">-</div>
+            </div>
+            <div style="font-size:20px;font-weight:700;color:var(--brand);" id="card-total">0</div>
+          </div>
+        </div>
+
+        <button class="btn btn-secondary" onclick="backToLookup()">
+          <i class="ti ti-arrow-left" aria-hidden="true"></i> Voltar
+        </button>
+      </div>
+    </div>
+
+    <div id="client-register" style="display:none;">
+      <div class="content">
+        <div class="card">
+          <p class="section-title">Novo cadastro</p>
+          <div class="form-group">
+            <label class="form-label" for="reg-name">Nome completo</label>
+            <input type="text" id="reg-name" placeholder="Seu nome completo" autocomplete="name" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="reg-cpf">CPF</label>
+            <input type="text" id="reg-cpf" placeholder="000.000.000-00" maxlength="14" oninput="maskCPF(this)" inputmode="numeric" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="reg-whats">WhatsApp</label>
+            <input type="tel" id="reg-whats" placeholder="(11) 99999-9999" maxlength="15" oninput="maskPhone(this)" inputmode="tel" />
+          </div>
+          <button class="btn btn-primary" onclick="registerClient()">Criar meu cartão</button>
+          <button class="btn btn-secondary" onclick="backToLookup()">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TELA ATENDENTE -->
+  <div id="screen-admin" class="screen">
+
+    <div id="admin-login">
+      <div class="content" style="padding-top:40px;">
+        <div style="text-align:center;margin-bottom:24px;">
+          <img src="/logo.png" alt="Vulcanus Grill" style="width:60px;height:60px;object-fit:contain;" />
+          <div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--text);margin-top:8px;">Área do atendente</div>
+        </div>
+        <div class="card">
+          <div class="form-group">
+            <label class="form-label" for="admin-pass">Senha</label>
+            <input type="password" id="admin-pass" placeholder="Digite a senha" onkeydown="if(event.key==='Enter')adminLogin()" />
+          </div>
+          <button class="btn btn-primary" onclick="adminLogin()">Entrar</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="admin-panel" style="display:none;">
+      <div class="content">
+        <div class="admin-header">
+          <i class="ti ti-layout-dashboard" style="color:var(--brand);font-size:20px;" aria-hidden="true"></i>
+          <span class="admin-title">Painel</span>
+          <button class="btn btn-secondary btn-sm" onclick="adminLogout()">
+            <i class="ti ti-logout" aria-hidden="true"></i> Sair
+          </button>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-label">Clientes</div>
+            <div class="stat-value" id="stat-clients">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Resgates</div>
+            <div class="stat-value" id="stat-prizes">0</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="section-title">Registrar pedido</p>
+          <div class="search-wrap">
+            <i class="ti ti-search" aria-hidden="true"></i>
+            <input type="text" id="admin-search" placeholder="Buscar por CPF ou nome" oninput="adminSearch(this.value)" />
+          </div>
+          <div id="admin-search-results"></div>
+        </div>
+
+        <div class="card">
+          <p class="section-title">Todos os clientes</p>
+          <div id="admin-client-list"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div id="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-client-name">Cliente</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px;" id="modal-client-info"></div>
+    <div class="stamp-grid" id="modal-stamp-grid" style="margin-bottom:14px;"></div>
+    <div class="progress-wrap">
+      <div class="progress-bar" id="modal-progress" style="width:0%"></div>
+    </div>
+    <div class="progress-text" style="margin-bottom:16px;" id="modal-progress-text"></div>
+    <div id="modal-prize-msg" class="prize-banner" style="display:none;margin-bottom:14px;">
+      <span style="font-size:22px;">🎁</span>
+      <div><div class="prize-banner-text">Combo grátis disponível!</div></div>
+    </div>
+    <button class="btn btn-primary" id="modal-action-btn" onclick="modalAction()" style="margin-top:4px;"></button>
+    <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+  </div>
+</div>
+
+<div id="toast" role="alert" aria-live="polite"></div>
+
+<script>
+  const ADMIN_PASS = "Admin@Grill2602";
+  const DB_KEY = "vulcanus_fidelidade_v1";
+  let db = {};
+  let currentModalCPF = null;
+
+  function loadDB() {
+    try {
+      const raw = localStorage.getItem(DB_KEY);
+      if (raw) db = JSON.parse(raw);
+    } catch(e) { db = {}; }
+  }
+
+  function saveDB() {
+    try { localStorage.setItem(DB_KEY, JSON.stringify(db)); } catch(e) {}
+  }
+
+  function switchTab(tab) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('screen-' + tab).classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
+  }
+
+  function maskCPF(el) {
+    let v = el.value.replace(/\D/g, '').slice(0, 11);
+    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+    v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    el.value = v;
+  }
+
+  function maskPhone(el) {
+    let v = el.value.replace(/\D/g, '').slice(0, 11);
+    if (v.length > 6) v = '(' + v.slice(0,2) + ') ' + v.slice(2,7) + '-' + v.slice(7);
+    else if (v.length > 2) v = '(' + v.slice(0,2) + ') ' + v.slice(2);
+    el.value = v;
+  }
+
+  function cleanCPF(cpf) { return cpf.replace(/\D/g, ''); }
+
+  function formatCPF(cpf) {
+    return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  function getInitials(name) {
+    return name.trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  }
+
+  function buildStampGrid(stamps, containerId) {
+    const grid = document.getElementById(containerId);
+    grid.innerHTML = '';
+    for (let i = 0; i < 10; i++) {
+      const div = document.createElement('div');
+      div.className = 'stamp' + (i < stamps ? ' filled' : '') + (i === 9 ? ' prize' : '');
+      grid.appendChild(div);
+    }
+  }
+
+  function showClientCard(cpf) {
+    const c = db[cpf];
+    if (!c) return;
+    const stamps = c.total % 10;
+    const cycle = Math.floor(c.total / 10) + 1;
+    const pct = Math.round((stamps / 10) * 100);
+    const hasPrize = stamps === 0 && c.total > 0 && c.prizes < Math.floor(c.total / 10);
+
+    document.getElementById('card-avatar').textContent = getInitials(c.name);
+    document.getElementById('card-name').textContent = c.name;
+    document.getElementById('card-since').textContent = 'Cliente desde ' + c.since;
+    document.getElementById('card-cycle').textContent = 'Ciclo ' + cycle;
+    document.getElementById('progress-bar').style.width = pct + '%';
+    document.getElementById('progress-text').textContent = stamps + ' de 10 pedidos';
+    document.getElementById('card-total').textContent = c.total;
+    document.getElementById('card-total-sub').textContent = c.prizes + ' combo(s) resgatado(s)';
+    buildStampGrid(stamps, 'stamp-grid');
+    document.getElementById('prize-banner').style.display = hasPrize ? 'flex' : 'none';
+
+    document.getElementById('client-lookup').style.display = 'none';
+    document.getElementById('client-register').style.display = 'none';
+    document.getElementById('client-card').style.display = 'block';
+  }
+
+  function lookupClient() {
+    const cpf = cleanCPF(document.getElementById('client-cpf').value);
+    if (cpf.length !== 11) { showToast('CPF inválido'); return; }
+    if (!db[cpf]) { showToast('CPF não encontrado — faça seu cadastro!'); return; }
+    showClientCard(cpf);
+  }
+
+  function showRegister() {
+    document.getElementById('client-lookup').style.display = 'none';
+    document.getElementById('client-register').style.display = 'block';
+  }
+
+  function backToLookup() {
+    document.getElementById('client-lookup').style.display = 'block';
+    document.getElementById('client-card').style.display = 'none';
+    document.getElementById('client-register').style.display = 'none';
+  }
+
+  function registerClient() {
+    const name = document.getElementById('reg-name').value.trim();
+    const cpf = cleanCPF(document.getElementById('reg-cpf').value);
+    const whats = document.getElementById('reg-whats').value.trim();
+    if (!name) { showToast('Informe seu nome'); return; }
+    if (cpf.length !== 11) { showToast('CPF inválido'); return; }
+    if (!whats || whats.replace(/\D/g,'').length < 10) { showToast('Informe o WhatsApp'); return; }
+    if (db[cpf]) { showToast('CPF já cadastrado!'); return; }
+    const today = new Date().toLocaleDateString('pt-BR');
+    db[cpf] = { name, cpf, whats, since: today, total: 0, prizes: 0 };
+    saveDB();
+    showToast('Bem-vindo(a), ' + name.split(' ')[0] + '!');
+    showClientCard(cpf);
+  }
+
+  function adminLogin() {
+    const p = document.getElementById('admin-pass').value;
+    if (p !== ADMIN_PASS) { showToast('Senha incorreta'); return; }
+    document.getElementById('admin-login').style.display = 'none';
+    document.getElementById('admin-panel').style.display = 'block';
+    renderAdminPanel();
+  }
+
+  function adminLogout() {
+    document.getElementById('admin-panel').style.display = 'none';
+    document.getElementById('admin-login').style.display = 'block';
+    document.getElementById('admin-pass').value = '';
+  }
+
+  function renderAdminPanel() {
+    const clients = Object.values(db);
+    document.getElementById('stat-clients').textContent = clients.length;
+    document.getElementById('stat-prizes').textContent = clients.reduce((s, c) => s + c.prizes, 0);
+    const list = document.getElementById('admin-client-list');
+    if (clients.length === 0) {
+      list.innerHTML = '<div class="empty-state"><i class="ti ti-users"></i>Nenhum cliente cadastrado ainda</div>';
+      return;
+    }
+    list.innerHTML = clients.sort((a,b) => a.name.localeCompare(b.name)).map(c => clientRowHTML(c)).join('');
+  }
+
+  function clientRowHTML(c) {
+    const stamps = c.total % 10;
+    const hasPrize = stamps === 0 && c.total > 0 && c.prizes < Math.floor(c.total / 10);
+    const badge = hasPrize
+      ? '<span class="badge badge-warning"><i class="ti ti-gift" style="font-size:11px;"></i> Combo disponível</span>'
+      : '<span class="client-row-stamps">' + stamps + '/10</span>';
+    return `<div class="client-row" onclick="openModal('${c.cpf}')">
+      <div class="client-avatar" style="width:36px;height:36px;font-size:13px;">${getInitials(c.name)}</div>
+      <div class="client-row-info">
+        <div class="client-row-name">${c.name}</div>
+        <div class="client-row-sub">${formatCPF(c.cpf)} · ${c.whats}</div>
+      </div>
+      ${badge}
+    </div>`;
+  }
+
+  function adminSearch(val) {
+    const res = document.getElementById('admin-search-results');
+    if (!val.trim()) { res.innerHTML = ''; return; }
+    const q = val.toLowerCase();
+    const found = Object.values(db).filter(c =>
+      c.name.toLowerCase().includes(q) || c.cpf.includes(val.replace(/\D/g,''))
+    );
+    if (found.length === 0) {
+      res.innerHTML = '<p style="font-size:13px;color:var(--text-muted);padding:8px 0;">Nenhum resultado</p>';
+      return;
+    }
+    res.innerHTML = '<div style="border-top:0.5px solid var(--border);margin-top:8px;">' + found.map(c => clientRowHTML(c)).join('') + '</div>';
+  }
+
+  function openModal(cpf) {
+    currentModalCPF = cpf;
+    const c = db[cpf];
+    const stamps = c.total % 10;
+    const hasPrize = stamps === 0 && c.total > 0 && c.prizes < Math.floor(c.total / 10);
+    const pct = Math.round((stamps / 10) * 100);
+
+    document.getElementById('modal-client-name').textContent = c.name;
+    document.getElementById('modal-client-info').textContent = formatCPF(c.cpf) + ' · ' + c.whats + ' · ' + c.total + ' pedido(s)';
+    document.getElementById('modal-progress').style.width = pct + '%';
+    document.getElementById('modal-progress-text').textContent = stamps + ' de 10 pedidos';
+    buildStampGrid(stamps, 'modal-stamp-grid');
+
+    const prizeMsg = document.getElementById('modal-prize-msg');
+    const btn = document.getElementById('modal-action-btn');
+    if (hasPrize) {
+      prizeMsg.style.display = 'flex';
+      btn.textContent = '🎁 Registrar resgate do combo';
+      btn.style.background = '#BA7517';
+    } else {
+      prizeMsg.style.display = 'none';
+      btn.textContent = '+ Registrar pedido';
+      btn.style.background = 'var(--brand)';
+    }
+
+    document.getElementById('modal-overlay').classList.add('open');
+  }
+
+  function handleOverlayClick(e) {
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('open');
+    currentModalCPF = null;
+  }
+
+  function modalAction() {
+    const c = db[currentModalCPF];
+    const stamps = c.total % 10;
+    const hasPrize = stamps === 0 && c.total > 0 && c.prizes < Math.floor(c.total / 10);
+
+    if (hasPrize) {
+      c.prizes++;
+      showToast('🎁 Combo resgatado! Bom apetite!');
+    } else {
+      c.total++;
+      const newStamps = c.total % 10;
+      if (newStamps === 0) showToast('🎉 ' + c.name.split(' ')[0] + ' completou o cartão!');
+      else showToast('✓ Pedido registrado! ' + newStamps + '/10');
+    }
+
+    saveDB();
+    closeModal();
+    renderAdminPanel();
+    document.getElementById('admin-search').value = '';
+    document.getElementById('admin-search-results').innerHTML = '';
+  }
+
+  loadDB();
+</script>
+</body>
+</html>
