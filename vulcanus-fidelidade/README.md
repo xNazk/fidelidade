@@ -69,3 +69,4 @@ se o atendente usar um dispositivo diferente, não verá os clientes cadastrados
 - ✅ Busca por nome ou CPF
 - ✅ Funciona em celular (layout responsivo)
 - ✅ Suporte a modo escuro automático
+- 
