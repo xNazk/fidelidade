@@ -605,19 +605,52 @@
 
 <script>
   const ADMIN_PASS = "Admin@Grill2602";
-  const DB_KEY = "vulcanus_fidelidade_v1";
+  const SB_URL = "https://hbthanxfwgazbwrocpqp.supabase.co";
+  const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhidGhhbnhmd2dhemJ3cm9jcHFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxOTI2MjQsImV4cCI6MjA5NTc2ODYyNH0.6s0L6xP3ptoJDZPEbxSza8jIcG8HZ3oJsJJ04r1SPLs";
+
   let db = {};
   let currentModalCPF = null;
 
-  function loadDB() {
+  async function sbFetch(path, options = {}) {
+    const res = await fetch(SB_URL + '/rest/v1/' + path, {
+      ...options,
+      headers: {
+        'apikey': SB_KEY,
+        'Authorization': 'Bearer ' + SB_KEY,
+        'Content-Type': 'application/json',
+        'Prefer': options.prefer || '',
+        ...(options.headers || {})
+      }
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const text = await res.text();
+    return text ? JSON.parse(text) : null;
+  }
+
+  async function loadDB() {
     try {
-      const raw = localStorage.getItem(DB_KEY);
-      if (raw) db = JSON.parse(raw);
+      const rows = await sbFetch('clientes?select=*');
+      db = {};
+      rows.forEach(r => {
+        db[r.cpf] = { name: r.nome, cpf: r.cpf, whats: r.whatsapp, since: r.desde, total: r.total, prizes: r.premios };
+      });
     } catch(e) { db = {}; }
   }
 
-  function saveDB() {
-    try { localStorage.setItem(DB_KEY, JSON.stringify(db)); } catch(e) {}
+  async function saveClient(c) {
+    await sbFetch('clientes', {
+      method: 'POST',
+      prefer: 'resolution=merge-duplicates',
+      headers: { 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify({ cpf: c.cpf, nome: c.name, whatsapp: c.whats, desde: c.since, total: c.total, premios: c.prizes })
+    });
+  }
+
+  async function updateClient(c) {
+    await sbFetch('clientes?cpf=eq.' + c.cpf, {
+      method: 'PATCH',
+      body: JSON.stringify({ total: c.total, premios: c.prizes })
+    });
   }
 
   function switchTab(tab) {
@@ -693,9 +726,11 @@
     document.getElementById('client-card').style.display = 'block';
   }
 
-  function lookupClient() {
+  async function lookupClient() {
     const cpf = cleanCPF(document.getElementById('client-cpf').value);
     if (cpf.length !== 11) { showToast('CPF inválido'); return; }
+    showToast('⏳ Buscando...');
+    await loadDB();
     if (!db[cpf]) { showToast('CPF não encontrado — faça seu cadastro!'); return; }
     showClientCard(cpf);
   }
@@ -711,27 +746,31 @@
     document.getElementById('client-register').style.display = 'none';
   }
 
-  function registerClient() {
+  async function registerClient() {
     const name = document.getElementById('reg-name').value.trim();
     const cpf = cleanCPF(document.getElementById('reg-cpf').value);
     const whats = document.getElementById('reg-whats').value.trim();
     if (!name) { showToast('Informe seu nome'); return; }
     if (cpf.length !== 11) { showToast('CPF inválido'); return; }
     if (!whats || whats.replace(/\D/g,'').length < 10) { showToast('Informe o WhatsApp'); return; }
+    await loadDB();
     if (db[cpf]) { showToast('CPF já cadastrado!'); return; }
     const today = new Date().toLocaleDateString('pt-BR');
-    db[cpf] = { name, cpf, whats, since: today, total: 0, prizes: 0 };
-    saveDB();
-    showToast('Bem-vindo(a), ' + name.split(' ')[0] + '!');
-    showClientCard(cpf);
+    const c = { name, cpf, whats, since: today, total: 0, prizes: 0 };
+    db[cpf] = c;
+    try {
+      await saveClient(c);
+      showToast('Bem-vindo(a), ' + name.split(' ')[0] + '!');
+      showClientCard(cpf);
+    } catch(e) { showToast('Erro ao salvar. Tente novamente.'); }
   }
 
-  function adminLogin() {
+  async function adminLogin() {
     const p = document.getElementById('admin-pass').value;
     if (p !== ADMIN_PASS) { showToast('Senha incorreta'); return; }
     document.getElementById('admin-login').style.display = 'none';
     document.getElementById('admin-panel').style.display = 'block';
-    renderAdminPanel();
+    await renderAdminPanel();
   }
 
   function adminLogout() {
@@ -740,7 +779,9 @@
     document.getElementById('admin-pass').value = '';
   }
 
-  function renderAdminPanel() {
+  async function renderAdminPanel() {
+    document.getElementById('admin-client-list').innerHTML = '<div class="empty-state"><i class="ti ti-refresh"></i>Carregando...</div>';
+    await loadDB();
     const clients = Object.values(db);
     document.getElementById('stat-clients').textContent = clients.length;
     document.getElementById('stat-prizes').textContent = clients.reduce((s, c) => s + c.prizes, 0);
@@ -819,7 +860,7 @@
     currentModalCPF = null;
   }
 
-  function modalAction() {
+  async function modalAction() {
     const c = db[currentModalCPF];
     const stamps = c.total % 10;
     const hasPrize = stamps === 0 && c.total > 0 && c.prizes < Math.floor(c.total / 10);
@@ -834,9 +875,12 @@
       else showToast('✓ Pedido registrado! ' + newStamps + '/10');
     }
 
-    saveDB();
+    try {
+      await updateClient(c);
+    } catch(e) { showToast('Erro ao salvar. Tente novamente.'); return; }
+
     closeModal();
-    renderAdminPanel();
+    await renderAdminPanel();
     document.getElementById('admin-search').value = '';
     document.getElementById('admin-search-results').innerHTML = '';
   }
