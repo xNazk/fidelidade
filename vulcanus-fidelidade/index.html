@@ -605,25 +605,31 @@
 
 <script>
   const ADMIN_PASS = "Admin@Grill2602";
-  const SB_URL = "https://hbthanxfwgazbwrocpqp.supabase.co";
+  const SB_URL = "https://hbthanxfwgazbwrocpqp.supabase.co/rest/v1";
   const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhidGhhbnhmd2dhemJ3cm9jcHFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAxOTI2MjQsImV4cCI6MjA5NTc2ODYyNH0.6s0L6xP3ptoJDZPEbxSza8jIcG8HZ3oJsJJ04r1SPLs";
 
   let db = {};
   let currentModalCPF = null;
 
   async function sbFetch(path, options = {}) {
-    const res = await fetch(SB_URL + '/rest/v1/' + path, {
-      ...options,
-      headers: {
-        'apikey': SB_KEY,
-        'Authorization': 'Bearer ' + SB_KEY,
-        'Content-Type': 'application/json',
-        'Prefer': options.prefer || '',
-        ...(options.headers || {})
-      }
+    const headers = {
+      'apikey': SB_KEY,
+      'Authorization': 'Bearer ' + SB_KEY,
+      'Content-Type': 'application/json',
+    };
+    if (options.prefer) headers['Prefer'] = options.prefer;
+
+    const res = await fetch(SB_URL + '/' + path, {
+      method: options.method || 'GET',
+      headers,
+      body: options.body || undefined
     });
-    if (!res.ok) throw new Error(await res.text());
+
     const text = await res.text();
+    if (!res.ok) {
+      console.error('Supabase erro:', res.status, text);
+      throw new Error(text);
+    }
     return text ? JSON.parse(text) : null;
   }
 
